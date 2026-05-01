@@ -1,5 +1,6 @@
 {
-  "com.github.fo170.parasitic-calculator": {
+  "packages": {
+    "com.github.fo170.parasitic-calculator": {
     "name": "Calculateur de parasites R,L,C",
     "identifier": "com.github.fo170.parasitic-calculator",
     "type": "plugin",
@@ -33,5 +34,6 @@
         "publish_date": "2026-05-01"
       }
     ]
+    }
   }
 }
