@@ -1,0 +1,37 @@
+{
+  "com.github.fo170.parasitic-calculator": {
+    "name": "Calculateur de parasites R,L,C",
+    "identifier": "com.github.fo170.parasitic-calculator",
+    "type": "plugin",
+    "license": "MIT",
+    "author": {
+      "name": "Olivier FOURNET",
+      "contact": {
+        "github": "https://github.com/Fo170"
+      }
+    },
+    "maintainer": {
+      "name": "Olivier FOURNET",
+      "contact": {
+        "github": "https://github.com/Fo170"
+      }
+    },
+    "description": "Plugin KiCad calculant les parasites R, L et C entre deux vias.",
+    "description_full": "Plugin KiCad qui calcule la résistance, l\u2019inductance et la capacit\u00e9 parasites entre deux vias d\u2019un m\u00eame net.",
+    "resources": {
+      "homepage": "https://github.com/Fo170/kicad-parasitic-calculator"
+    },
+    "tags": ["analysis", "pcb", "parasitics", "plugin"],
+    "versions": [
+      {
+        "version": "1.0.0",
+        "status": "stable",
+        "kicad_version": "7.0",
+        "download_url": "https://github.com/Fo170/kicad-parasitic-calculator/releases/download/v1.0.0/parasitic_calculator-1.0.0-pcm.zip",
+        "download_size": 9515,
+        "install_size": 45000,
+        "publish_date": "2026-05-01"
+      }
+    ]
+  }
+}

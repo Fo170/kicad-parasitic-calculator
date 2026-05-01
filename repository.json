@@ -1,18 +1,19 @@
 {
   "name": "Olivier FOURNET KiCad Plugins",
-  "packages": {
-    "com.github.fo170.parasitic-calculator": {
-      "versions": [
-        {
-          "version": "1.0.0",
-          "status": "stable",
-          "kicad_version": "7.0",
-          "download_url": "https://github.com/Fo170/kicad-parasitic-calculator/releases/download/v1.0.0/parasitic_calculator-1.0.0-pcm.zip",
-          "download_size": 9515,
-          "install_size": 45000,
-          "publish_date": "2026-05-01"
-        }
-      ]
+  "maintainer": {
+    "name": "Olivier FOURNET",
+    "contact": {
+      "github": "https://github.com/Fo170"
     }
+  },
+  "packages": {
+    "url": "https://raw.githubusercontent.com/Fo170/kicad-parasitic-calculator/main/packages.json",
+    "sha256": "ceab1c9509893059c817642b0d0a13d925bfcc03e3a1803d4d703a289c6b5efe",
+    "update_timestamp": 1777651161
+  },
+  "resources": {
+    "url": "https://raw.githubusercontent.com/Fo170/kicad-parasitic-calculator/main/resources.zip",
+    "sha256": "a6e66462ec5f32ec32d56b71a56c208c07dc108762d260e53096a117e9b6657f",
+    "update_timestamp": 1777651161
   }
 }
