@@ -1,0 +1,9 @@
+Structure requise sur ton GitHub :
+
+ton-repo/
+├── repository.json          # Liste tous tes plugins
+├── plugins/
+│   └── parasitic_calculator/
+│       ├── metadata.json    # Infos du plugin (version, description, dépendances)
+│       ├── parasitic_calculator-1.0.0-pcm.zip  # Archive du plugin
+│       └── parasitic_calculator-1.1.0-pcm.zip  # Mise à jour

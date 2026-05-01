@@ -1,0 +1,8 @@
+Workflow de mise à jour :
+
+1. Modifier parasitic_calculator.py
+2. Mettre à jour le numéro de version dans metadata.json et repository.json
+3. Créer l'archive ZIP avec package_release.sh
+4. Uploader le ZIP sur GitHub Releases (nouveau tag v1.1.0)
+5. Mettre à jour les URLs download_url dans les JSON
+6. Commit + push

@@ -1,0 +1,12 @@
+{
+  "repositories": [
+    {
+      "name": "KiCad Official",
+      "url": "https://repository.kicad.org/repository.json"
+    },
+    {
+      "name": "Mon GitHub",
+      "url": "https://raw.githubusercontent.com/Fo170/kicad-parasitic-calculator/main/repository.json"
+    }
+  ]
+}

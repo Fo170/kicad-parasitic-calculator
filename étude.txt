@@ -1,0 +1,122 @@
+KiCad dispose d'un système de plugins/scripting bien documenté, bien que le niveau de difficulté dépende de ce que tu veux accomplir :
+Deux approches principales
+1. Python Scripting (Action Plugins) — Le plus accessible
+KiCad expose une API Python (pcbnew pour le routage, eeschema pour le schéma)
+Tu peux créer des plugins qui apparaissent directement dans le menu Outils → Plugins externes
+Idéal pour : génération automatique de footprints, vérifications DRC custom, export de données, placement automatique de composants, etc.
+Exemple minimal Python :
+
+
+import pcbnew
+
+class MonPlugin(pcbnew.ActionPlugin):
+    def defaults(self):
+        self.name = "Mon Plugin"
+        self.category = "Utilitaires"
+        self.description = "Fait quelque chose d'utile"
+    
+    def Run(self):
+        board = pcbnew.GetBoard()
+        # Ton code ici
+        print(f"PCB: {board.GetFileName()}")
+2. Plugins C++ natifs — Pour des performances maximales
+Nécessite de compiler KiCad depuis les sources
+Réservé aux modifications profondes du comportement interne
+Où trouver la doc et des exemples
+Documentation officielle : KiCad Python API Reference
+Dépôt d'exemples : KiCad / kicad-source-mirror — voir le dossier demos/python_scripts/
+Plugins communautaires : KiCad PCM (Plugin and Content Manager) — tu peux aussi publier ton plugin là-bas
+Contraintes à connaître
+
+Table
+Aspect	Détail
+Stabilité API	L'API Python évolue entre les versions majeures (v6 → v7 → v8), donc maintenance nécessaire
+Documentation	Parfois lacunaire ; il faut souvent lire le code source C++ ou tester dans la console Python intégrée
+Portée	L'API Python ne donne pas accès à tout (certaines fonctions internes restent en C++ uniquement)
+En résumé
+Si tu maîtrises déjà Python, c'est relativement simple pour des plugins utilitaires. Si tu veux modifier le cœur de KiCad ou faire de l'UI complexe, cela demande plus d'investissement.
+Tu as un type de plugin particulier en tête ? Je peux t'orienter vers des ressources plus spécifiques.
+si je voulais un plugins qui calcule les inductances, résistances et capacité parasite des pistes d'un pcb entre deux vias
+
+
+C'est un projet intéressant et tout à fait réalisable en plugin Python KiCad ! Voici comment aborder cela :
+Ce que tu vas devoir calculer
+
+Table
+Paramètre	Formules clés	Données nécessaires
+Résistance	R = ρ × L / (W × T)	Longueur, largeur, épaisseur cuivre, température
+Capacité	C = ε₀εᵣ × A / d	Surface face à face, distance inter-couches, εᵣ du FR4 (~4.5)
+Inductance	Formules de Wheeler / Grover	Longueur, largeur, épaisseur, retour de courant (ground)
+Architecture du plugin Python :
+
+
+import pcbnew
+import math
+
+class PcbParasiticCalculator(pcbnew.ActionPlugin):
+    def defaults(self):
+        self.name = "Calculateur parasites piste"
+        self.category = "Analyse"
+        self.description = "Calcule R, L, C parasites entre deux vias"
+    
+    def Run(self):
+        board = pcbnew.GetBoard()
+        # 1. Sélectionner deux vias (ou les récupérer de la sélection)
+        # 2. Extraire le net commun
+        # 3. Trouver le chemin de piste entre eux
+        # 4. Calculer les paramètres géométriques
+        # 5. Appliquer les formules
+
+Défis techniques spécifiques
+1. Extraction du chemin de piste Python :
+
+# Récupérer les segments de piste d'un net
+track_list = [t for t in board.GetTracks() if t.GetNetCode() == net_code]
+
+# Trouver les vias
+vias = [t for t in track_list if isinstance(t, pcbnew.PCB_VIA)]
+2. Calcul de la longueur effective
+KiCad te donne les segments (lignes, arcs), tu dois reconstruire le chemin
+Attention aux couches : une piste peut changer de couche via un via (impédance différente)
+3. Modèle de retour de courant
+L'inductance dépend du chemin de retour (généralement le plan de masse le plus proche)
+Sans connaître le chemin de retour exact, tu peux faire une approximation avec la distance au plan de masse
+4. Capacité parasite
+Capacité piste-piste (couplage) vs piste-plan de masse (dominant)
+Pour une piste simple au-dessus d'un plan de masse : modèle de microstrip ou stripline selon la couche
+
+Formules pratiques à implémenter Python :
+
+class ParasiticCalculator:
+    def __init__(self, copper_thickness_um=35, temp_c=25):
+        self.rho = 1.68e-8 * (1 + 0.0039*(temp_c - 20))  # Cuivre
+        self.thickness = copper_thickness_um * 1e-6
+    
+    def resistance(self, length_m, width_m):
+        area = width_m * self.thickness
+        return self.rho * length_m / area
+    
+    def inductance_microstrip(self, length_m, width_m, height_m):
+        # Approximation Wheeler simplifiée
+        # height = distance au plan de masse
+        w_h = width_m / height_m
+        if w_h < 1:
+            eff = (w_h + 1.98) ** -1  # correction
+        else:
+            eff = (w_h + 1.74) ** -1
+        # ... formules complètes
+        pass
+        
+Ressources et outils existants
+KiCad Calculator (intégré) : fait déjà ces calculs pour des lignes de transmission, mais pas pour des pistes arbitraires du PCB
+Saturn PCB Toolkit : logiciel externe de référence pour ces calculs (peut servir de validation)
+IPC-2141 : standard avec les formules officielles
+Recommandation d'approche
+Commencer simple : calcul de R uniquement (le plus facile, données directes)
+Ajouter L : modèle microstrip basique avec plan de masse infini sous la piste
+Ajouter C : capacité piste-plan de masse
+Affiner : prise en compte des changements de couche, couplage adjacent, etc.
+Interface utilisateur suggérée
+Sélectionner deux vias → clic droit → "Calculer parasites"
+Ou fenêtre flottante avec liste des nets et résultats tabulés
+Tu veux que je développe un squelette fonctionnel du plugin avec la récupération du chemin de piste et le calcul de résistance ? Ou tu préfères creuser d'abord la partie modélisation électromagnétique (L et C) ?
