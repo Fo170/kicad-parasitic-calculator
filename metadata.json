@@ -1,6 +1,6 @@
 {
   "$schema": "https://gitlab.com/kicad/addons/metadata/-/raw/master/schemas/pcm.v1.schema.json",
-  "identifier": "com.github.tonuser.parasitic-calculator",
+  "identifier": "com.github.fo170.parasitic-calculator",
   "name": "Calculateur de parasites R,L,C",
   "description": "Calcule les résistances, inductances et capacités parasites des pistes PCB entre deux vias sélectionnés. Détection automatique des plans de masse.",
   "description_full": "Plugin d'analyse électrique pour KiCad permettant de calculer les paramètres parasites (R, L, C) des interconnexions PCB.\n\nFonctionnalités :\n- Sélection de deux vias par clic\n- Calcul automatique du chemin de piste\n- Détection des plans de masse pour une estimation précise de L et C\n- Résistance DC et AC (effet de peau)\n- Paramètres configurables (cuivre, température, εr, fréquence)\n- Export détaillé par segment",
