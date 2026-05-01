@@ -1,0 +1,19 @@
+{
+  "name": "Olivier FOURNET KiCad Plugins",
+  "packages": [
+    {
+      "identifier": "com.github.fo170.parasitic-calculator",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "status": "stable",
+          "kicad_version": "7.0",
+          "download_url": "https://github.com/Fo170/kicad-parasitic-calculator/releases/download/v1.0.0/parasitic_calculator-1.0.0-pcm.zip",
+          "download_size": 15000,
+          "install_size": 45000,
+          "publish_date": "2026-05-01"
+        }
+      ]
+    }
+  ]
+}
