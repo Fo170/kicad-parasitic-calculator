@@ -1,0 +1,10 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Build artifacts
+parasitic_calculator-1.0.0-pcm/
+parasitic_calculator-1.0.0-pcm.zip
+
+# KiCad plugin/cache
+*.zip
