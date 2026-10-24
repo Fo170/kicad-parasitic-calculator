@@ -283,6 +283,10 @@ Consultées le 2026-10-24.
 Le script construit l'archive PCM, calcule les tailles et empreintes réelles, puis met à
 jour `metadata.json`, `packages.json` et `repository.json` (dont `update_timestamp`).
 
+L'archive contient `plugins/parasitic_calculator.py`, `plugins/parasitic_icon.png`
+(icône du bouton dans KiCad), `resources/icon.png` (icône du dépôt dans le gestionnaire
+de plugins) et `metadata.json`. `resources.zip` fournit l'icône du dépôt.
+
 ## Licence
 
 MIT — voir [LICENSE](LICENSE).

@@ -42,7 +42,10 @@ echo "2/5 Structure PCM"
 mkdir -p "$BUILD_DIR/plugins" "$BUILD_DIR/resources"
 cp parasitic_calculator.py "$BUILD_DIR/plugins/"
 if [ -f parasitic_icon.png ]; then
-    cp parasitic_icon.png "$BUILD_DIR/resources/"
+    cp parasitic_icon.png "$BUILD_DIR/plugins/"
+fi
+if [ -f resources.zip ]; then
+    unzip -p resources.zip resources/icon.png > "$BUILD_DIR/resources/icon.png" 2>/dev/null || true
 fi
 
 echo "3/5 Archive"

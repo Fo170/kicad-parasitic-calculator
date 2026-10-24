@@ -8,12 +8,12 @@
   },
   "packages": {
     "url": "https://raw.githubusercontent.com/Fo170/kicad-parasitic-calculator/main/packages.json",
-    "sha256": "d2a4a11d457501f40e65f1f26bfccb1ea9130beb8578fdde61c84b9b35e8461c",
-    "update_timestamp": 1792865205
+    "sha256": "8e2ae02b491af59c7d5f37e7a35e4202637ed556eda9b01ff1283c680a32665f",
+    "update_timestamp": 1792866868
   },
   "resources": {
     "url": "https://raw.githubusercontent.com/Fo170/kicad-parasitic-calculator/main/resources.zip",
-    "sha256": "a6e66462ec5f32ec32d56b71a56c208c07dc108762d260e53096a117e9b6657f",
+    "sha256": "2e2817817656f6d030b9be1d9135c15bf241ec5162c7dca13d8329d5c5208d41",
     "update_timestamp": 1777651161
   }
 }

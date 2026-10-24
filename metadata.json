@@ -22,8 +22,8 @@
       "status": "stable",
       "kicad_version": "7.0",
       "download_url": "https://github.com/Fo170/kicad-parasitic-calculator/releases/download/v1.1.0/parasitic_calculator-1.1.0-pcm.zip",
-      "download_size": 16818,
-      "install_size": 62650,
+      "download_size": 22058,
+      "install_size": 67546,
       "publish_date": "2026-10-24"
     }
   ],
