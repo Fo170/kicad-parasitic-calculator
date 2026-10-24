@@ -15,3 +15,9 @@ parasitic_config.json
 
 # Projets KiCad generes par les tests manuels
 test_plugin/_config_casse.json
+
+# Preferences locales KiCad (creees a l'ouverture d'une carte, propres a chaque poste)
+*.kicad_prl
+*.kicad_pro
+*-backups/
+fp-info-cache
