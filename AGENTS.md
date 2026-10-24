@@ -9,7 +9,7 @@ parasitic **R, L, C**, characteristic impedance `Z₀` and propagation delay of 
 between two vias of the same net, plus via parasitics. It auto-selects the transmission-line
 model from the real stackup and the copper planes around the trace.
 
-- **Version** 1.1.0 · **Stack**: Python 3 (KiCad's bundled interpreter, 3.9+), `pcbnew`,
+- **Version** 1.1.1 · **Stack**: Python 3 (KiCad's bundled interpreter, 3.9+), `pcbnew`,
   `wxPython`, stdlib only otherwise (`math`, `os`, `json`, `collections.deque`, `glob`).
 - **No build system, no test runner, no linter config, no CI.** Tests are plain scripts run
   with KiCad's Python because `pcbnew` is required.
@@ -48,6 +48,7 @@ model from the real stackup and the copper planes around the trace.
 │   ├── t_*.kicad_pcb           # Test boards (outline, footprints, planes, comments)
 │   ├── test_physique.py        # Formulas vs published reference values
 │   ├── test_modeles.py         # Expected model per board + Z₀ = √(L/C)
+│   ├── test_selection.py       # Tolerant endpoint resolution (3 selection modes)
 │   ├── test_bout_en_bout.py    # End-to-end analysis of six boards
 │   └── test_regression.py      # Non-regression for every fixed bug
 └── parasitic_calculator-*-pcm/ + .zip   # BUILD ARTIFACTS (gitignored)
@@ -72,7 +73,7 @@ flatpak run --filesystem=$(pwd) --command=python3 org.kicad.KiCad test_physique.
 ruff check parasitic_calculator.py
 
 # Package build: rebuilds the zip, rewrites sizes/hashes in all three JSON files
-./package_release.sh 1.1.0
+./package_release.sh 1.1.1
 
 # PCM integrity: these MUST match repository.json
 sha256sum packages.json resources.zip
@@ -117,7 +118,7 @@ scope. Never use it as a smoke test.
 | `BoardModel(board, config)` | Ground nets + zones | `nearest_planes(layer, stackup, pos)` → `(above, below)`; `has_plane()` / `has_ground_plane()` |
 | `ParasiticCalculator(config)` | Pure math | SI floats in/out; returns `0.0` on invalid input instead of raising |
 | `PathAnalyser(board, config)` | Orchestration | `.find_path()` → ordered item list or `[]`; `.analyse()` → results dict, raises `ValueError` when no path |
-| `ParasiticPlugin.Run` | KiCad entry point | Requires exactly 2 selected vias, same net, net ≠ 0 |
+| `ParasiticPlugin.Run` | KiCad entry point | `resolve_endpoints()` accepts 2 vias, 1 via + tracks, or a full track path; endpoints must share a non-zero net |
 
 Design invariant worth preserving: **L and C always come from `lc_from_z0(Z₀, ε_eff, l)`**,
 so that `Z₀ = √(L/C)` and `L·C = ε_eff·(l/c)²` hold for every model. Never compute L and C
@@ -132,7 +133,11 @@ from independent formulas again — that was the core bug of 1.0.0.
    the compatibility section instead of calling `pcbnew` directly.
 3. **Test `PCB_VIA` before `PCB_TRACK`.** `PCB_VIA` *is* a `PCB_TRACK`; the reverse order
    silently routes vias through the track branch (`via_count` = 0, width = pad diameter).
-4. **KiCad objects are not hashable.** Index by `id(item)`, never use board items as dict keys.
+4. **KiCad objects are not hashable, and SWIG recreates them.** Index by `id(item)`, never
+   use board items as dict keys — but never compare two wrappers with `is` across separate
+   `GetTracks()` calls either: they are different Python objects for the same item. Compare
+   with `_same_point()` / `_same_item()` (position based). `find_path()` re-anchors its
+   endpoints on one snapshot for this reason.
 5. **Two different heights.** `dielectric()` (h, used by line models) ≠ `distance()` (pitch
    between median planes, used by `span_length()`). Swapping them skews every result.
 6. **`h = (t_total − n·t_cu)/(n−1)`**, not `t_total/(n+1)`. On a 2-layer 1.6 mm board that

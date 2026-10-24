@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 KiCad Plugin : Calculateur avance de parasites R, L, C des pistes PCB
-Version 1.1.0 - Modeles de ligne de transmission multiples + vias traversants,
+Version 1.1.1 - Modeles de ligne de transmission multiples + vias traversants,
 borgnes, enterres et microvias.
 Compatible KiCad 7.x / 8.x / 9.x / 10.x
 
@@ -686,14 +686,35 @@ class PathAnalyser:
                 found.extend(index.get((point.x + dx, point.y + dy), []))
         return found
 
+    def _same_item(self, first, second):
+        """Deux references KiCad designent-elles le meme objet du board ?
+
+        SWIG cree un nouvel objet Python a chaque parcours : comparer par `is`
+        est donc faux. On compare par position (et type pour lever l'ambiguite
+        via / piste).
+        """
+        if isinstance(first, pcbnew.PCB_VIA) != isinstance(second, pcbnew.PCB_VIA):
+            return False
+        try:
+            one = first.GetPosition()
+            two = second.GetPosition()
+        except Exception:
+            return first is second
+        return one.x == two.x and one.y == two.y
+
     def find_path(self, start_via, end_via):
         """Plus court chemin en nombre d'elements, via BFS, couches compatibles."""
         net_code = start_via.GetNetCode()
         items = [t for t in self.board.GetTracks() if t.GetNetCode() == net_code]
-        if not any(t is start_via for t in items):
-            items.append(start_via)
-        if not any(t is end_via for t in items):
-            items.append(end_via)
+
+        # Reancrer les extremites sur les instances de CET instantane : tout le
+        # parcours doit manipuler les memes objets pour que les identites
+        # internes (id()) restent coherentes.
+        start = next((t for t in items if self._same_item(t, start_via)), None)
+        end = next((t for t in items if self._same_item(t, end_via)), None)
+        if start is None or end is None:
+            return []
+        start_via, end_via = start, end
 
         index = self._build_index(items)
         layers = {id(it): item_layers(it) for it in items}
@@ -1402,6 +1423,110 @@ class ResultDialog(wx.Dialog):
 # ---------------------------------------------------------------------------
 # Plugin
 # ---------------------------------------------------------------------------
+def _same_point(first, second):
+    """Deux objets KiCad sont-ils au meme endroit ? (SWIG recree les objets)"""
+    try:
+        one = first.GetPosition()
+        two = second.GetPosition()
+    except Exception:
+        return first is second
+    return one.x == two.x and one.y == two.y
+
+
+def describe_selection(board):
+    """Resume lisible de la selection courante, pour les messages d'erreur."""
+    vias = tracks = pads = 0
+    for item in board.GetTracks():
+        if not item.IsSelected():
+            continue
+        if isinstance(item, pcbnew.PCB_VIA):
+            vias += 1
+        else:
+            tracks += 1
+    try:
+        for footprint in board.GetFootprints():
+            for pad in footprint.Pads():
+                if pad.IsSelected():
+                    pads += 1
+    except Exception:
+        pass
+    parts = []
+    if vias:
+        parts.append("%d via(s)" % vias)
+    if tracks:
+        parts.append("%d piste(s)" % tracks)
+    if pads:
+        parts.append("%d pad(s)" % pads)
+    return ", ".join(parts) if parts else "rien"
+
+
+def resolve_endpoints(board):
+    """Deduit les deux extremites a analyser depuis la selection.
+
+    Trois cas acceptes, du plus explicite au plus permissif :
+      1. exactement deux vias selectionnes ;
+      2. un via selectionne plus des pistes : l'autre extremite est le via
+         qui termine les pistes selectionnees ;
+      3. des pistes selectionnees seules : on prend les vias situes aux deux
+         extremites de l'ensemble selectionne.
+
+    Retourne (via_depart, via_arrivee, message_d_erreur).
+    """
+    selected_vias = []
+    selected_tracks = []
+    for item in board.GetTracks():
+        if not item.IsSelected():
+            continue
+        if isinstance(item, pcbnew.PCB_VIA):
+            selected_vias.append(item)
+        else:
+            selected_tracks.append(item)
+
+    if len(selected_vias) == 2:
+        return selected_vias[0], selected_vias[1], None
+
+    if len(selected_vias) > 2:
+        return None, None, ("%d vias sont selectionnes. N'en gardez que deux."
+                            % len(selected_vias))
+
+    if not selected_tracks:
+        return None, None, None
+
+    # Extremites des pistes selectionnees : on y cherche des vias.
+    ends = set()
+    for track in selected_tracks:
+        try:
+            start = track.GetStart()
+            end = track.GetEnd()
+        except Exception:
+            continue
+        ends.add((start.x, start.y))
+        ends.add((end.x, end.y))
+
+    candidates = list(selected_vias)
+    for item in board.GetTracks():
+        if not isinstance(item, pcbnew.PCB_VIA):
+            continue
+        position = item.GetPosition()
+        if (position.x, position.y) not in ends:
+            continue
+        if any(_same_point(via, item) for via in candidates):
+            continue
+        candidates.append(item)
+
+    if len(candidates) == 2:
+        return candidates[0], candidates[1], None
+
+    if len(candidates) > 2:
+        return None, None, (
+            "Les pistes selectionnees aboutissent a %d vias. Selectionnez "
+            "seulement le chemin entre les deux vias a analyser." % len(candidates))
+
+    return None, None, (
+        "Les pistes selectionnees n'aboutissent pas a deux vias. "
+        "Selectionnez les deux vias, ou le chemin complet entre eux.")
+
+
 class ParasiticPlugin(pcbnew.ActionPlugin):
     """Plugin principal KiCad."""
 
@@ -1426,39 +1551,51 @@ class ParasiticPlugin(pcbnew.ActionPlugin):
                           wx.OK | wx.ICON_WARNING)
             return
 
-        vias = [item for item in board.GetTracks()
-                if isinstance(item, pcbnew.PCB_VIA) and item.IsSelected()]
+        via1, via2, problem = resolve_endpoints(board)
 
-        if len(vias) != 2:
+        if via1 is None or via2 is None:
+            selection = describe_selection(board)
+            if problem:
+                detail = problem
+            else:
+                detail = ("Selectionnez les deux vias a analyser.\n\n"
+                          "Trois facons de faire :\n"
+                          "  - les deux vias seuls (Shift+Clic sur chacun) ;\n"
+                          "  - un via et le chemin de pistes qui en part ;\n"
+                          "  - tout le chemin de pistes entre les deux vias.")
             dialog = wx.MessageDialog(
                 None,
-                "Selectionnez exactement 2 vias avec Shift+Clic.\n\n"
-                "Actuellement : %d via(s) selectionne(s).\n\n"
-                "Voulez-vous ouvrir la configuration du plugin ?" % len(vias),
+                "Selection actuelle : %s.\n\n%s\n\n"
+                "Astuce : si le clic selectionne des pistes au lieu des vias, "
+                "activez \"Vias\" dans le filtre de selection "
+                "(barre d'outils en haut a droite de l'editeur PCB).\n\n"
+                "Voulez-vous ouvrir la configuration du plugin ?"
+                % (selection, detail),
                 "Selection requise",
-                wx.YES_NO | wx.ICON_QUESTION)
+                wx.YES_NO | wx.ICON_INFORMATION)
             wants_config = dialog.ShowModal() == wx.ID_YES
             dialog.Destroy()
             if wants_config:
                 self.show_config()
             return
 
-        net1 = vias[0].GetNetCode()
-        net2 = vias[1].GetNetCode()
+        net1 = via1.GetNetCode()
+        net2 = via2.GetNetCode()
         if net1 != net2 or net1 == 0:
-            wx.MessageBox("Les deux vias doivent appartenir au meme net (et pas au net 0).",
+            wx.MessageBox("Les deux extremites doivent appartenir au meme net "
+                          "(et pas au net 0).",
                           "Erreur de net", wx.OK | wx.ICON_ERROR)
             return
 
         try:
             analyser = PathAnalyser(board, self.config)
-            results = analyser.analyse(vias[0], vias[1])
+            results = analyser.analyse(via1, via2)
         except Exception as exc:
             wx.MessageBox("Erreur lors de l'analyse :\n%s" % exc,
                           "Erreur", wx.OK | wx.ICON_ERROR)
             return
 
-        self.show_results(results, vias[0], vias[1])
+        self.show_results(results, via1, via2)
 
     def show_config(self):
         dialog = ConfigDialog(None, self.config)

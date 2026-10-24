@@ -26,7 +26,8 @@ directement dans KiCad et contient :
 ## Utilisation manuelle
 
 1. Ouvrir une carte dans KiCad.
-2. Selectionner les deux vias du net `SIG` avec `Shift+Clic`.
+2. Selectionner le chemin a analyser : les deux vias du net `SIG`, un via et son
+   chemin de pistes, ou tout le chemin entre les deux vias.
 3. `Outils > Plugins externes > Calculateur parasites R,L,C`.
 
 L'onglet `Modeles et formules` de la fenetre de resultats rappelle le modele retenu et

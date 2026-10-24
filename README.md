@@ -4,7 +4,7 @@ Plugin KiCad qui calcule la **résistance**, l'**inductance** et la **capacité*
 d'un chemin de cuivre entre deux vias d'un même net, en choisissant automatiquement le
 modèle de ligne de transmission adapté à la structure réelle de la carte.
 
-- **Version** : 1.1.0 (2026-10-24)
+- **Version** : 1.1.1 (2026-10-24)
 - **Compatibilité** : KiCad 7.x, 8.x, 9.x, 10.x (testé sur 10.0.7)
 - **Licence** : MIT
 
@@ -33,7 +33,7 @@ fausses. Les écarts constatés et corrigés en 1.1.0 :
 
 ## Fonctionnalités
 
-- Sélection de deux vias par `Shift+Clic`.
+- Sélection tolérante : deux vias, un via + son chemin de pistes, ou tout le chemin.
 - Choix automatique du modèle de ligne selon l'empilement et les plans de cuivre :
   piste isolée, microstrip, stripline symétrique, stripline asymétrique,
   coplanaire (CPW) et coplanaire avec plan arrière (CPWG).
@@ -65,10 +65,20 @@ Copier `parasitic_calculator.py` dans le dossier de plugins de script de KiCad :
 ## Utilisation
 
 1. Ouvrir un PCB.
-2. Sélectionner **deux vias du même net** avec `Shift+Clic`.
+2. Sélectionner les deux extrémités à analyser — trois gestes sont acceptés :
+   - **les deux vias** seuls (`Shift+Clic` sur chacun) ;
+   - **un via et le chemin de pistes** qui en part ;
+   - **tout le chemin de pistes** entre les deux vias : les vias d'extrémité sont
+     alors déduits automatiquement.
 3. `Outils > Plugins externes > Calculateur parasites R,L,C`.
 
-Lancer le plugin sans sélection valide propose d'ouvrir la configuration.
+Si le clic sélectionne des pistes au lieu des vias, c'est le **filtre de sélection** de
+KiCad qui exclut les vias : activez `Vias` dans la barre d'outils en haut à droite de
+l'éditeur PCB. Le plugin reste utilisable sans cela, puisqu'il accepte une sélection de
+pistes.
+
+Lancer le plugin sans sélection valide affiche ce qui est actuellement sélectionné et
+propose d'ouvrir la configuration.
 
 ## Modèles et formules
 
@@ -233,6 +243,7 @@ cd test_plugin
 python3 test_physique.py        # formules contre valeurs de référence
 python3 test_modeles.py         # modèle attendu par carte + Z₀ = √(L/C)
 python3 test_bout_en_bout.py    # analyse complète de six cartes
+python3 test_selection.py       # résolution des extrémités (3 modes de sélection)
 python3 test_regression.py      # non-régression des bugs corrigés
 ```
 
@@ -277,7 +288,7 @@ Consultées le 2026-10-24.
 ## Créer une release
 
 ```bash
-./package_release.sh 1.1.0
+./package_release.sh 1.1.1
 ```
 
 Le script construit l'archive PCM, calcule les tailles et empreintes réelles, puis met à

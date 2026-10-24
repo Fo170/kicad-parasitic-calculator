@@ -1,5 +1,47 @@
 # Changelog
 
+## 1.1.1 — 2026-10-24
+
+Correctif de sélection, signalé en usage réel : `Shift+Clic` sur un via sélectionnait la
+piste située dessous, et le plugin refusait de s'exécuter.
+
+### Sélection tolérante
+
+`Run()` accepte désormais trois gestes, au lieu du seul « exactement deux vias » :
+
+| Geste | Résolution |
+|---|---|
+| Deux vias sélectionnés | utilisés tels quels |
+| Un via + le chemin de pistes | le second via est celui qui termine les pistes |
+| Tout le chemin de pistes | les vias d'extrémité sont déduits de la sélection |
+
+Le message d'erreur indique maintenant ce qui est réellement sélectionné
+(« 1 via(s), 3 piste(s) ») et rappelle que le filtre de sélection de KiCad doit inclure
+`Vias` si les clics n'attrapent que des pistes.
+
+### Bug latent corrigé : identité des objets SWIG
+
+`pcbnew` renvoie de **nouveaux objets Python à chaque parcours** de `board.GetTracks()` :
+deux références du même via ne sont donc pas identiques au sens de `is`. Or
+`find_path()` comparait les extrémités par identité et ajoutait des doublons à la liste
+d'analyse. Le chemin pouvait être introuvable alors que la carte était correcte.
+
+Correction : `_same_point()` / `_same_item()` comparent par position, et `find_path()`
+réancre ses extrémités sur un seul instantané de `GetTracks()`.
+
+### Tests
+
+Nouveau `test_plugin/test_selection.py` : 6 cas, dont la vérification que des objets SWIG
+neufs n'empêchent plus la découverte du chemin.
+
+```
+test_selection.py    : 6 cas, 0 echec
+test_physique.py     : 16 verifications, 0 echec
+test_modeles.py      : 9 cartes, 6 types de via, 0 echec
+test_bout_en_bout.py : 6 cartes, 0 echec
+test_regression.py   : 21 verifications, 21 corrigees, 0 echec
+```
+
 ## 1.1.0 — 2026-10-24
 
 Réécriture du moteur de calcul et de la couche de compatibilité KiCad. Tous les findings
