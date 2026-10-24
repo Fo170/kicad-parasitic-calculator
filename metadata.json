@@ -1,9 +1,9 @@
 {
-  "$schema": "https://gitlab.com/kicad/addons/metadata/-/raw/master/schemas/pcm.v1.schema.json",
+  "$schema": "https://go.kicad.org/pcm/schemas/v1",
   "identifier": "com.github.fo170.parasitic-calculator",
   "name": "Calculateur de parasites R,L,C",
-  "description": "Plugin KiCad qui calcule la résistance, l’inductance et la capacité parasites entre deux vias d’un même net.",
-  "description_full": "Plugin KiCad qui calcule la résistance, l’inductance et la capacité parasites entre deux vias d’un même net.",
+  "description": "Calcule R, L et C parasites entre deux vias : piste isolee, microstrip, stripline symetrique et asymetrique, coplanaire (CPW/CPWG) et vias traversants, borgnes, enterres ou microvias.",
+  "description_full": "Plugin KiCad qui calcule la resistance, l'inductance et la capacite parasites entre deux vias d'un meme net. Le modele de ligne est choisi automatiquement d'apres l'empilement reel de la carte et la position des plans de cuivre : piste isolee (Grover), microstrip et stripline (Hammerstad-Jensen, Wheeler), coplanaire avec ou sans plan arriere (Wen, Ghione-Naldi). Les vias sont classes traversant, borgne, enterre ou microvia et leur longueur reelle est deduite de leurs couches. Resultats detailles par element, avec formules et sources.",
   "type": "plugin",
   "author": {
     "name": "Olivier FOURNET",
@@ -18,19 +18,21 @@
   },
   "versions": [
     {
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "stable",
       "kicad_version": "7.0",
-      "download_url": "https://github.com/Fo170/kicad-parasitic-calculator/releases/download/v1.0.0/parasitic_calculator-1.0.0-pcm.zip",
-      "download_size": 15000,
-      "install_size": 45000,
-      "publish_date": "2026-05-01"
+      "download_url": "https://github.com/Fo170/kicad-parasitic-calculator/releases/download/v1.1.0/parasitic_calculator-1.1.0-pcm.zip",
+      "download_size": 16818,
+      "install_size": 62650,
+      "publish_date": "2026-10-24"
     }
   ],
   "tags": [
     "analysis",
     "pcb",
     "parasitics",
+    "impedance",
+    "transmission-line",
     "plugin"
   ]
 }

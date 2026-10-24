@@ -3,8 +3,15 @@ __pycache__/
 *.py[cod]
 
 # Build artifacts
-parasitic_calculator-1.0.0-pcm/
-parasitic_calculator-1.0.0-pcm.zip
+parasitic_calculator-*-pcm/
+parasitic_calculator-*-pcm.zip
 
-# KiCad plugin/cache
+# Configuration locale du plugin (ne jamais committer)
+parasitic_config.json
+
+# Archives produites, sauf resources.zip qui fait partie du depot PCM
 *.zip
+!resources.zip
+
+# Projets KiCad generes par les tests manuels
+test_plugin/_config_casse.json
